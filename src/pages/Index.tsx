@@ -145,8 +145,12 @@ const Index = () => {
       await supabase.from("finance_entries").insert({
         family_id: family.familyId,
         member_id: family.memberId,
-        source_message_id: message?.id,
-        ...parsed,
+        source_message_id: message?.id ?? null,
+        type: parsed.type,
+        title: parsed.title,
+        amount: parsed.amount,
+        category: parsed.category ?? null,
+        metadata: parsed.metadata ?? {},
       });
       await addAssistant(`${labelFor(parsed.type)} dicatat: ${parsed.title}${parsed.amount ? ` • ${formatRupiah(parsed.amount)}` : ""}.`);
     } else {
@@ -266,4 +270,3 @@ const Report = ({ entries, totals, onClose, onPaid, onDelete }: { entries: Finan
 );
 
 export default Index;
-TS
