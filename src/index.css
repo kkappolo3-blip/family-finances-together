@@ -8,35 +8,51 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 42 38% 95%;
+    --foreground: 220 30% 12%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 38 42% 98%;
+    --card-foreground: 220 30% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 38 42% 98%;
+    --popover-foreground: 220 30% 12%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 207 88% 52%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 337 86% 65%;
+    --secondary-foreground: 330 28% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 40 30% 90%;
+    --muted-foreground: 220 12% 42%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 156 52% 44%;
+    --accent-foreground: 150 45% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 32 24% 82%;
+    --input: 32 24% 82%;
+    --ring: 207 88% 52%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+    --father: 207 88% 52%;
+    --father-foreground: 210 40% 98%;
+    --mother: 337 86% 65%;
+    --mother-foreground: 330 28% 98%;
+    --income: 156 52% 44%;
+    --expense: 18 86% 58%;
+    --bill: 42 92% 50%;
+    --debt: 269 48% 55%;
+    --note: 192 65% 42%;
+    --surface: 38 42% 98%;
+    --surface-soft: 40 36% 91%;
+    --surface-strong: 220 30% 12%;
+    --gradient-home: linear-gradient(135deg, hsl(207 88% 52%), hsl(337 86% 65%));
+    --gradient-paper: radial-gradient(circle at 10% 10%, hsl(207 88% 52% / 0.18), transparent 28%), radial-gradient(circle at 90% 0%, hsl(337 86% 65% / 0.18), transparent 30%), hsl(var(--background));
+    --shadow-soft: 0 20px 60px -28px hsl(220 30% 12% / 0.35);
+    --shadow-chat: 0 12px 30px -18px hsl(220 30% 12% / 0.45);
 
     --sidebar-background: 0 0% 98%;
 
@@ -101,5 +117,28 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+    background: var(--gradient-paper);
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: "Plus Jakarta Sans", "Nunito", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+  }
+}
+
+@layer utilities {
+  .home-grain {
+    background-image: linear-gradient(hsl(var(--foreground) / 0.035) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .float-soft {
+      animation: float-soft 7s ease-in-out infinite;
+    }
   }
 }
