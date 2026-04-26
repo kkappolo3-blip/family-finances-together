@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { BarChart3, Check, Home, LogOut, Send, Trash2, WalletCards, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -145,8 +146,12 @@ const Index = () => {
       await supabase.from("finance_entries").insert({
         family_id: family.familyId,
         member_id: family.memberId,
-        source_message_id: message?.id,
-        ...parsed,
+        source_message_id: message?.id ?? null,
+        type: parsed.type,
+        title: parsed.title,
+        amount: parsed.amount,
+        category: parsed.category ?? null,
+        metadata: (parsed.metadata ?? {}) as Json,
       });
       await addAssistant(`${labelFor(parsed.type)} dicatat: ${parsed.title}${parsed.amount ? ` • ${formatRupiah(parsed.amount)}` : ""}.`);
     } else {
@@ -266,4 +271,3 @@ const Report = ({ entries, totals, onClose, onPaid, onDelete }: { entries: Finan
 );
 
 export default Index;
-TS
