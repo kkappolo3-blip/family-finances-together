@@ -39,6 +39,24 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        father: {
+          DEFAULT: "hsl(var(--father))",
+          foreground: "hsl(var(--father-foreground))",
+        },
+        mother: {
+          DEFAULT: "hsl(var(--mother))",
+          foreground: "hsl(var(--mother-foreground))",
+        },
+        income: "hsl(var(--income))",
+        expense: "hsl(var(--expense))",
+        bill: "hsl(var(--bill))",
+        debt: "hsl(var(--debt))",
+        note: "hsl(var(--note))",
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          soft: "hsl(var(--surface-soft))",
+          strong: "hsl(var(--surface-strong))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -63,7 +81,23 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        soft: "var(--shadow-soft)",
+        chat: "var(--shadow-chat)",
+      },
+      backgroundImage: {
+        home: "var(--gradient-home)",
+        paper: "var(--gradient-paper)",
+      },
       keyframes: {
+        "float-soft": {
+          "0%, 100%": { transform: "translate3d(0, 0, 0)" },
+          "50%": { transform: "translate3d(0, -10px, 0)" },
+        },
+        "slide-up": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
         "accordion-down": {
           from: {
             height: "0",
@@ -82,6 +116,8 @@ export default {
         },
       },
       animation: {
+        "float-soft": "float-soft 7s ease-in-out infinite",
+        "slide-up": "slide-up 0.35s ease-out both",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
