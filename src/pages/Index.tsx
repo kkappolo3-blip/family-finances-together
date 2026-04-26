@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { BarChart3, Check, Home, LogOut, Send, Trash2, WalletCards, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -150,7 +151,7 @@ const Index = () => {
         title: parsed.title,
         amount: parsed.amount,
         category: parsed.category ?? null,
-        metadata: parsed.metadata ?? {},
+        metadata: (parsed.metadata ?? {}) as Json,
       });
       await addAssistant(`${labelFor(parsed.type)} dicatat: ${parsed.title}${parsed.amount ? ` • ${formatRupiah(parsed.amount)}` : ""}.`);
     } else {
