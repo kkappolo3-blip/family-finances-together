@@ -178,7 +178,7 @@ const Index = () => {
         <section className="w-full max-w-md animate-slide-up rounded-lg border border-border bg-surface p-6 shadow-soft">
           <div className="mb-6 flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-home text-primary-foreground shadow-chat"><Home /></div>
-            <div><h1 className="text-2xl font-black">Keuangan Keluarga</h1><p className="text-sm text-muted-foreground">Masuk dengan email terverifikasi</p></div>
+            <div><h1 className="text-2xl font-black">Keuangan Ayah dan Ibu</h1><p className="text-sm text-muted-foreground">Masuk dengan email terverifikasi</p></div>
           </div>
           <form onSubmit={handleAuth} className="space-y-3">
             <Input type="email" required placeholder="email keluarga" value={email} onChange={(event) => setEmail(event.target.value)} />
