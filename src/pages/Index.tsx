@@ -125,8 +125,8 @@ const Index = () => {
     try {
       const recent = entries
         .filter((e) => e.status !== "deleted")
-        .slice(0, 5)
-        .map((e) => ({ type: e.type, title: e.title, amount: e.amount, status: e.status }));
+        .slice(0, 10)
+        .map((e) => ({ id: e.id, type: e.type, title: e.title, amount: e.amount, status: e.status }));
       const { data, error: fnError } = await supabase.functions.invoke("parse-finance", { body: { text, recent } });
       if (fnError) throw fnError;
       aiResult = data;
@@ -162,20 +162,32 @@ const Index = () => {
       return;
     }
 
-    const { action, entry, target_title, reply } = aiResult;
+    const { action, entry, target_id, target_title, reply } = aiResult;
+    const activeEntries = entries.filter((e) => e.status !== "deleted");
+    const findTarget = (predicate?: (e: FinanceEntry) => boolean) => {
+      if (target_id) {
+        const byId = activeEntries.find((e) => e.id === target_id);
+        if (byId) return byId;
+      }
+      if (target_title) {
+        const t = target_title.toLowerCase();
+        const byTitle = activeEntries.find((e) => e.title.toLowerCase().includes(t) && (!predicate || predicate(e)));
+        if (byTitle) return byTitle;
+      }
+      return predicate ? activeEntries.find(predicate) : activeEntries[0];
+    };
 
     if (action === "delete_last") {
-      const last = entries.find((e) => e.status !== "deleted");
-      if (last) await supabase.from("finance_entries").update({ status: "deleted" }).eq("id", last.id);
-      await addAssistant(reply || (last ? `Entri "${last.title}" dibatalkan.` : "Belum ada entri."));
+      const target = findTarget();
+      if (target) await supabase.from("finance_entries").update({ status: "deleted" }).eq("id", target.id);
+      await addAssistant(reply || (target ? `Entri "${target.title}" dibatalkan.` : "Belum ada entri."));
       return;
     }
 
     if (action === "settle") {
-      const target = (target_title || "").toLowerCase();
-      const found = entries.find((e) => ["bill", "debt"].includes(e.type) && e.status === "open" && (!target || e.title.toLowerCase().includes(target)));
+      const found = findTarget((e) => ["bill", "debt"].includes(e.type) && e.status === "open");
       if (found) await supabase.from("finance_entries").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", found.id);
-      await addAssistant(reply || (found ? `${found.title} ditandai lunas.` : `Belum menemukan tagihan "${target}".`));
+      await addAssistant(reply || (found ? `${found.title} ditandai lunas.` : `Belum menemukan tagihan "${target_title || ""}".`));
       return;
     }
 
@@ -185,8 +197,9 @@ const Index = () => {
     }
 
     if (action === "revise_last" && entry) {
-      const last = entries.find((e) => e.status !== "deleted");
-      if (last) await supabase.from("finance_entries").update({ status: "deleted" }).eq("id", last.id);
+      // Cari target yang tipe-nya cocok dengan entri pengganti
+      const target = findTarget((e) => e.type === entry.type);
+      if (target) await supabase.from("finance_entries").update({ status: "deleted" }).eq("id", target.id);
       await supabase.from("finance_entries").insert({
         family_id: family.familyId,
         member_id: family.memberId,
@@ -196,7 +209,7 @@ const Index = () => {
         amount: entry.amount || 0,
         category: entry.category ?? null,
       });
-      await addAssistant(reply || `Entri sebelumnya diperbarui: ${entry.title} • ${formatRupiah(entry.amount || 0)}.`);
+      await addAssistant(reply || (target ? `Entri "${target.title}" diralat menjadi ${entry.title} • ${formatRupiah(entry.amount || 0)}.` : `Entri baru: ${entry.title} • ${formatRupiah(entry.amount || 0)}.`));
       return;
     }
 

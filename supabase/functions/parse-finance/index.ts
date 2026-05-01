@@ -45,10 +45,10 @@ Deno.serve(async (req) => {
     }
 
     const recentContext = Array.isArray(recent) && recent.length
-      ? `\n\nKonteks 5 entri terakhir keluarga (terbaru di atas):\n${recent
-          .slice(0, 5)
-          .map((e: any, i: number) => `${i + 1}. [${e.type}] ${e.title} — ${e.amount} (${e.status})`)
-          .join("\n")}`
+      ? `\n\nKonteks entri AKTIF terbaru (id penting untuk revise_last/settle/delete_last):\n${recent
+          .slice(0, 10)
+          .map((e: any, i: number) => `${i + 1}. id=${e.id} [${e.type}] "${e.title}" — ${e.amount} (${e.status})`)
+          .join("\n")}\n\nUntuk action revise_last/settle/delete_last, WAJIB sertakan target_id dari daftar di atas yang paling cocok dengan maksud user. Contoh: "ralat gaji" → pilih id entri income terakhir, BUKAN expense terakhir.`
       : "";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -91,7 +91,8 @@ Deno.serve(async (req) => {
                     },
                     required: ["type", "title", "amount", "category"],
                   },
-                  target_title: { type: "string", description: "Untuk action settle: nama tagihan/hutang yang dilunasi." },
+                  target_id: { type: "string", description: "Untuk revise_last/settle/delete_last: id entri target dari konteks." },
+                  target_title: { type: "string", description: "Fallback nama target jika id tidak tersedia." },
                   reply: { type: "string", description: "Balasan singkat ramah untuk ditampilkan ke user." },
                 },
                 required: ["action", "reply"],
