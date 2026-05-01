@@ -120,43 +120,101 @@ const Index = () => {
       .select()
       .single();
 
-    if (/^hapus terakhir$/i.test(text)) {
-      const last = entries.find((entry) => entry.status !== "deleted");
+    // Ask AI to interpret the message
+    let aiResult: any = null;
+    try {
+      const recent = entries
+        .filter((e) => e.status !== "deleted")
+        .slice(0, 5)
+        .map((e) => ({ type: e.type, title: e.title, amount: e.amount, status: e.status }));
+      const { data, error: fnError } = await supabase.functions.invoke("parse-finance", { body: { text, recent } });
+      if (fnError) throw fnError;
+      aiResult = data;
+    } catch (err) {
+      console.error("AI parse failed, falling back to regex", err);
+    }
+
+    // Fallback: simple regex parser if AI unavailable
+    if (!aiResult || aiResult.error) {
+      if (/^hapus terakhir$/i.test(text)) {
+        const last = entries.find((e) => e.status !== "deleted");
+        if (last) await supabase.from("finance_entries").update({ status: "deleted" }).eq("id", last.id);
+        await addAssistant(last ? `Entri terakhir "${last.title}" dibatalkan.` : "Belum ada entri untuk dibatalkan.");
+        return;
+      }
+      if (isReportQuery(text)) return void addAssistant(buildAssistantReply(text, entries));
+      const parsed = parseFinanceText(text);
+      if (parsed) {
+        await supabase.from("finance_entries").insert({
+          family_id: family.familyId,
+          member_id: family.memberId,
+          source_message_id: message?.id ?? null,
+          type: parsed.type,
+          title: parsed.title,
+          amount: parsed.amount,
+          category: parsed.category ?? null,
+          metadata: (parsed.metadata ?? {}) as Json,
+        });
+        await addAssistant(`${labelFor(parsed.type)} dicatat: ${parsed.title}${parsed.amount ? ` • ${formatRupiah(parsed.amount)}` : ""}.`);
+      } else {
+        await addAssistant("AI sedang sibuk. Coba lagi sebentar, atau ketik contoh: gaji 8jt.");
+      }
+      return;
+    }
+
+    const { action, entry, target_title, reply } = aiResult;
+
+    if (action === "delete_last") {
+      const last = entries.find((e) => e.status !== "deleted");
       if (last) await supabase.from("finance_entries").update({ status: "deleted" }).eq("id", last.id);
-      await addAssistant(last ? `Entri terakhir “${last.title}” dibatalkan.` : "Belum ada entri untuk dibatalkan.");
+      await addAssistant(reply || (last ? `Entri "${last.title}" dibatalkan.` : "Belum ada entri."));
       return;
     }
 
-    const settle = text.match(/^lunasi\s+(.+)/i);
-    if (settle) {
-      const target = settle[1].toLowerCase();
-      const found = entries.find((entry) => ["bill", "debt"].includes(entry.type) && entry.status === "open" && entry.title.toLowerCase().includes(target));
+    if (action === "settle") {
+      const target = (target_title || "").toLowerCase();
+      const found = entries.find((e) => ["bill", "debt"].includes(e.type) && e.status === "open" && (!target || e.title.toLowerCase().includes(target)));
       if (found) await supabase.from("finance_entries").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", found.id);
-      await addAssistant(found ? `${found.title} sudah ditandai lunas.` : `Aku belum menemukan tagihan/hutang “${target}”.`);
+      await addAssistant(reply || (found ? `${found.title} ditandai lunas.` : `Belum menemukan tagihan "${target}".`));
       return;
     }
 
-    if (isReportQuery(text)) {
-      await addAssistant(buildAssistantReply(text, entries));
+    if (action === "report") {
+      await addAssistant(reply || buildAssistantReply(text, entries));
       return;
     }
 
-    const parsed = parseFinanceText(text);
-    if (parsed) {
+    if (action === "revise_last" && entry) {
+      const last = entries.find((e) => e.status !== "deleted");
+      if (last) await supabase.from("finance_entries").update({ status: "deleted" }).eq("id", last.id);
       await supabase.from("finance_entries").insert({
         family_id: family.familyId,
         member_id: family.memberId,
         source_message_id: message?.id ?? null,
-        type: parsed.type,
-        title: parsed.title,
-        amount: parsed.amount,
-        category: parsed.category ?? null,
-        metadata: (parsed.metadata ?? {}) as Json,
+        type: entry.type,
+        title: entry.title,
+        amount: entry.amount || 0,
+        category: entry.category ?? null,
       });
-      await addAssistant(`${labelFor(parsed.type)} dicatat: ${parsed.title}${parsed.amount ? ` • ${formatRupiah(parsed.amount)}` : ""}.`);
-    } else {
-      await addAssistant("Aku simpan sebagai obrolan. Ketik saldo, laporan, hutang, tagihan, catatan, atau contoh: gaji 8jt.");
+      await addAssistant(reply || `Entri sebelumnya diperbarui: ${entry.title} • ${formatRupiah(entry.amount || 0)}.`);
+      return;
     }
+
+    if (action === "add_entry" && entry) {
+      await supabase.from("finance_entries").insert({
+        family_id: family.familyId,
+        member_id: family.memberId,
+        source_message_id: message?.id ?? null,
+        type: entry.type,
+        title: entry.title,
+        amount: entry.amount || 0,
+        category: entry.category ?? null,
+      });
+      await addAssistant(reply || `${labelFor(entry.type)} dicatat: ${entry.title}${entry.amount ? ` • ${formatRupiah(entry.amount)}` : ""}.`);
+      return;
+    }
+
+    await addAssistant(reply || "Oke, aku simpan sebagai obrolan.");
   };
 
   const addAssistant = (content: string) => {
