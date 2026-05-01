@@ -17,7 +17,8 @@ export type FinanceEntry = ParsedEntry & {
   created_at: string;
 };
 
-const moneyPattern = /(\d+(?:[.,]\d+)?)(\s?)(rb|ribu|jt|juta|k)?/i;
+// Capture numbers with optional thousand separators (1.050.000 / 1,050,000) or decimals with unit (1,5jt)
+const moneyPattern = /(\d{1,3}(?:[.,]\d{3})+|\d+(?:[.,]\d+)?|\d+)\s?(rb|ribu|jt|juta|k|m)?/i;
 
 export const formatRupiah = (value: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value || 0);
@@ -26,12 +27,23 @@ export const parseAmount = (text: string) => {
   const normalized = text.toLowerCase().replace(/rp\.?\s?/g, "");
   const match = normalized.match(moneyPattern);
   if (!match) return 0;
-  const raw = Number(match[1].replace(",", "."));
-  const unit = match[3]?.toLowerCase();
+  const rawStr = match[1];
+  const unit = match[2]?.toLowerCase();
+  let raw: number;
+  // If contains multiple separators OR a single separator followed by exactly 3 digits → thousand separator
+  const sepCount = (rawStr.match(/[.,]/g) || []).length;
+  const looksLikeThousands = sepCount >= 2 || /^\d{1,3}([.,])\d{3}$/.test(rawStr);
+  if (looksLikeThousands && !unit) {
+    raw = Number(rawStr.replace(/[.,]/g, ""));
+  } else {
+    // Treat single separator as decimal (e.g. "1,5jt" or "1.5jt")
+    raw = Number(rawStr.replace(",", "."));
+  }
   if (unit === "rb" || unit === "ribu" || unit === "k") return Math.round(raw * 1000);
-  if (unit === "jt" || unit === "juta") return Math.round(raw * 1000000);
+  if (unit === "jt" || unit === "juta" || unit === "m") return Math.round(raw * 1000000);
   return Math.round(raw);
 };
+
 
 const cleanTitle = (text: string) =>
   text
