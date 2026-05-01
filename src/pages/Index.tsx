@@ -224,18 +224,20 @@ const Index = () => {
   return (
     <main className="home-grain min-h-screen bg-paper text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <div><h1 className="text-xl font-black sm:text-2xl">Keluarga {family.familyName}</h1><p className="text-xs font-bold text-muted-foreground">Login sebagai {family.role === "ayah" ? "Ayah" : "Ibu"}{family.inviteCode ? ` • kode ${family.inviteCode}` : ""}</p></div>
-          <div className="flex gap-2"><Button size="icon" variant="soft" onClick={() => setReportOpen(true)} aria-label="Buka laporan"><BarChart3 /></Button><Button size="icon" variant="soft" onClick={signOut} aria-label="Keluar"><LogOut /></Button></div>
+        <div className="mx-auto flex max-w-5xl flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div><h1 className="text-xl font-black sm:text-2xl">Keluarga {family.familyName}</h1><p className="text-xs font-bold text-muted-foreground">Login sebagai {family.role === "ayah" ? "Ayah" : "Ibu"}{family.inviteCode ? ` • kode ${family.inviteCode}` : ""}</p></div>
+            <div className="flex gap-2"><Button size="icon" variant="soft" onClick={() => setReportOpen(true)} aria-label="Buka laporan"><BarChart3 /></Button><Button size="icon" variant="soft" onClick={signOut} aria-label="Keluar"><LogOut /></Button></div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Summary title="Saldo" value={formatRupiah(totals.balance)} icon={<WalletCards />} />
+            <Summary title="Masuk" value={formatRupiah(totals.income)} />
+            <Summary title="Keluar" value={formatRupiah(totals.expense)} />
+          </div>
         </div>
       </header>
 
-      <section className="mx-auto flex min-h-[calc(100vh-73px)] max-w-5xl flex-col px-4 py-5">
-        <div className="mb-4 grid grid-cols-3 gap-2">
-          <Summary title="Saldo" value={formatRupiah(totals.balance)} icon={<WalletCards />} />
-          <Summary title="Masuk" value={formatRupiah(totals.income)} />
-          <Summary title="Keluar" value={formatRupiah(totals.expense)} />
-        </div>
+      <section className="mx-auto flex max-w-5xl flex-col px-4 py-5">
         <div className="flex-1 space-y-3 overflow-hidden pb-24">
           {messages.length === 0 && <div className="rounded-lg border border-dashed border-border bg-surface/70 p-5 text-center text-muted-foreground">Mulai ngobrol: “makan siang 35rb”, “gaji 8jt”, atau “saldo”.</div>}
           {messages.map((message) => {
