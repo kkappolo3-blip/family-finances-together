@@ -125,8 +125,8 @@ const Index = () => {
     try {
       const recent = entries
         .filter((e) => e.status !== "deleted")
-        .slice(0, 5)
-        .map((e) => ({ type: e.type, title: e.title, amount: e.amount, status: e.status }));
+        .slice(0, 10)
+        .map((e) => ({ id: e.id, type: e.type, title: e.title, amount: e.amount, status: e.status }));
       const { data, error: fnError } = await supabase.functions.invoke("parse-finance", { body: { text, recent } });
       if (fnError) throw fnError;
       aiResult = data;
