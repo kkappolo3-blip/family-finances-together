@@ -65,10 +65,20 @@ const Index = () => {
 
   const totals = useMemo(() => {
     const active = entries.filter((entry) => entry.status !== "deleted");
-    const income = active.filter((entry) => entry.type === "income").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-    const expense = active.filter((entry) => ["expense", "bill", "debt", "shopping"].includes(entry.type)).reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-    const receivable = active.filter((entry) => entry.type === "receivable" && entry.status === "open").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-    return { active, income, expense, balance: income + receivable - expense };
+    const sum = (list: FinanceEntry[]) => list.reduce((s, e) => s + Number(e.amount || 0), 0);
+    const income = sum(active.filter((e) => e.type === "income"));
+    // Pengeluaran langsung kurangi saldo
+    const directExpense = sum(active.filter((e) => ["expense", "shopping"].includes(e.type)));
+    // Tagihan & hutang hanya kurangi saldo setelah dilunasi
+    const settledLiabilities = sum(active.filter((e) => ["bill", "debt"].includes(e.type) && e.status === "paid"));
+    // Hutang yang belum dibayar = uang yang kita terima (saldo bertambah)
+    const openDebt = sum(active.filter((e) => e.type === "debt" && e.status === "open"));
+    // Piutang yang belum tertagih (orang lain hutang ke kita) tidak ditambah ke saldo cash,
+    // tapi tetap dihitung sebagai aset. Kalau mau cash murni, jangan tambahkan.
+    const receivable = sum(active.filter((e) => e.type === "receivable" && e.status === "open"));
+    const expense = directExpense + settledLiabilities;
+    const balance = income + openDebt + receivable - expense;
+    return { active, income, expense, balance };
   }, [entries]);
 
   const loadFamilyData = async () => {
