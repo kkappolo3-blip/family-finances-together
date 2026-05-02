@@ -309,7 +309,7 @@ const Index = () => {
         <div className="mx-auto flex max-w-5xl flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <div><h1 className="text-xl font-black sm:text-2xl">Keluarga {family.familyName}</h1><p className="text-xs font-bold text-muted-foreground">Login sebagai {family.role === "ayah" ? "Ayah" : "Ibu"}{family.inviteCode ? ` • kode ${family.inviteCode}` : ""}</p></div>
-            <div className="flex gap-2"><Button size="icon" variant="soft" onClick={() => setReportOpen(true)} aria-label="Buka laporan"><BarChart3 /></Button><Button size="icon" variant="soft" onClick={signOut} aria-label="Keluar"><LogOut /></Button></div>
+            <div className="flex gap-2"><Button size="icon" variant="soft" onClick={clearHistory} aria-label="Bersihkan riwayat"><Eraser /></Button><Button size="icon" variant="soft" onClick={() => setReportOpen(true)} aria-label="Buka laporan"><BarChart3 /></Button><Button size="icon" variant="soft" onClick={signOut} aria-label="Keluar"><LogOut /></Button></div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Summary title="Saldo" value={formatRupiah(totals.balance)} icon={<WalletCards />} />
