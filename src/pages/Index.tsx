@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { BarChart3, Check, Home, LogOut, Send, Trash2, WalletCards, X } from "lucide-react";
+import { BarChart3, Check, Eraser, Home, LogOut, Send, Trash2, WalletCards, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
@@ -237,6 +237,17 @@ const Index = () => {
 
   const markPaid = (entry: FinanceEntry) => supabase.from("finance_entries").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", entry.id).then(loadFamilyData);
   const removeEntry = (id: string) => supabase.from("finance_entries").update({ status: "deleted" }).eq("id", id).then(loadFamilyData);
+  const deleteMessage = async (id: string) => {
+    if (!confirm("Hapus pesan ini?")) return;
+    await supabase.from("chat_messages").delete().eq("id", id);
+    loadFamilyData();
+  };
+  const clearHistory = async () => {
+    if (!family) return;
+    if (!confirm("Bersihkan SEMUA riwayat chat? Tindakan ini tidak bisa dibatalkan.")) return;
+    await supabase.from("chat_messages").delete().eq("family_id", family.familyId);
+    loadFamilyData();
+  };
   const signOut = async () => {
     localStorage.removeItem(STORAGE_KEY);
     setFamily(null);
@@ -298,7 +309,7 @@ const Index = () => {
         <div className="mx-auto flex max-w-5xl flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <div><h1 className="text-xl font-black sm:text-2xl">Keluarga {family.familyName}</h1><p className="text-xs font-bold text-muted-foreground">Login sebagai {family.role === "ayah" ? "Ayah" : "Ibu"}{family.inviteCode ? ` • kode ${family.inviteCode}` : ""}</p></div>
-            <div className="flex gap-2"><Button size="icon" variant="soft" onClick={() => setReportOpen(true)} aria-label="Buka laporan"><BarChart3 /></Button><Button size="icon" variant="soft" onClick={signOut} aria-label="Keluar"><LogOut /></Button></div>
+            <div className="flex gap-2"><Button size="icon" variant="soft" onClick={clearHistory} aria-label="Bersihkan riwayat"><Eraser /></Button><Button size="icon" variant="soft" onClick={() => setReportOpen(true)} aria-label="Buka laporan"><BarChart3 /></Button><Button size="icon" variant="soft" onClick={signOut} aria-label="Keluar"><LogOut /></Button></div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Summary title="Saldo" value={formatRupiah(totals.balance)} icon={<WalletCards />} />
@@ -313,7 +324,20 @@ const Index = () => {
           {messages.length === 0 && <div className="rounded-lg border border-dashed border-border bg-surface/70 p-5 text-center text-muted-foreground">Mulai ngobrol: “makan siang 35rb”, “gaji 8jt”, atau “saldo”.</div>}
           {messages.map((message) => {
             const bubbleRole = message.kind === "assistant" ? "system" : message.family_members?.role || family.role;
-            return <div key={message.id} className={cn("flex", bubbleRole === "ibu" ? "justify-end" : bubbleRole === "ayah" ? "justify-start" : "justify-center")}><div className={cn("max-w-[82%] rounded-lg px-4 py-3 text-sm shadow-chat", bubbleRole === "ayah" && "bg-father text-father-foreground", bubbleRole === "ibu" && "bg-mother text-mother-foreground", bubbleRole === "system" && "bg-surface text-foreground border border-border")}><p className="mb-1 text-[11px] font-black uppercase opacity-80">{bubbleRole === "ayah" ? "Ayah" : bubbleRole === "ibu" ? "Ibu" : "AI"}</p>{message.content}</div></div>;
+            return (
+              <div key={message.id} className={cn("group flex items-center gap-2", bubbleRole === "ibu" ? "justify-end" : bubbleRole === "ayah" ? "justify-start" : "justify-center")}>
+                {bubbleRole === "ibu" && (
+                  <button onClick={() => deleteMessage(message.id)} className="opacity-0 transition group-hover:opacity-60 hover:opacity-100" aria-label="Hapus pesan"><Trash2 className="h-4 w-4" /></button>
+                )}
+                <div className={cn("max-w-[82%] rounded-lg px-4 py-3 text-sm shadow-chat", bubbleRole === "ayah" && "bg-father text-father-foreground", bubbleRole === "ibu" && "bg-mother text-mother-foreground", bubbleRole === "system" && "bg-surface text-foreground border border-border")}>
+                  <p className="mb-1 text-[11px] font-black uppercase opacity-80">{bubbleRole === "ayah" ? "Ayah" : bubbleRole === "ibu" ? "Ibu" : "AI"}</p>
+                  {message.content}
+                </div>
+                {bubbleRole !== "ibu" && (
+                  <button onClick={() => deleteMessage(message.id)} className="opacity-0 transition group-hover:opacity-60 hover:opacity-100" aria-label="Hapus pesan"><Trash2 className="h-4 w-4" /></button>
+                )}
+              </div>
+            );
           })}
           <div ref={bottomRef} />
         </div>
