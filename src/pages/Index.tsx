@@ -324,7 +324,20 @@ const Index = () => {
           {messages.length === 0 && <div className="rounded-lg border border-dashed border-border bg-surface/70 p-5 text-center text-muted-foreground">Mulai ngobrol: “makan siang 35rb”, “gaji 8jt”, atau “saldo”.</div>}
           {messages.map((message) => {
             const bubbleRole = message.kind === "assistant" ? "system" : message.family_members?.role || family.role;
-            return <div key={message.id} className={cn("flex", bubbleRole === "ibu" ? "justify-end" : bubbleRole === "ayah" ? "justify-start" : "justify-center")}><div className={cn("max-w-[82%] rounded-lg px-4 py-3 text-sm shadow-chat", bubbleRole === "ayah" && "bg-father text-father-foreground", bubbleRole === "ibu" && "bg-mother text-mother-foreground", bubbleRole === "system" && "bg-surface text-foreground border border-border")}><p className="mb-1 text-[11px] font-black uppercase opacity-80">{bubbleRole === "ayah" ? "Ayah" : bubbleRole === "ibu" ? "Ibu" : "AI"}</p>{message.content}</div></div>;
+            return (
+              <div key={message.id} className={cn("group flex items-center gap-2", bubbleRole === "ibu" ? "justify-end" : bubbleRole === "ayah" ? "justify-start" : "justify-center")}>
+                {bubbleRole === "ibu" && (
+                  <button onClick={() => deleteMessage(message.id)} className="opacity-0 transition group-hover:opacity-60 hover:opacity-100" aria-label="Hapus pesan"><Trash2 className="h-4 w-4" /></button>
+                )}
+                <div className={cn("max-w-[82%] rounded-lg px-4 py-3 text-sm shadow-chat", bubbleRole === "ayah" && "bg-father text-father-foreground", bubbleRole === "ibu" && "bg-mother text-mother-foreground", bubbleRole === "system" && "bg-surface text-foreground border border-border")}>
+                  <p className="mb-1 text-[11px] font-black uppercase opacity-80">{bubbleRole === "ayah" ? "Ayah" : bubbleRole === "ibu" ? "Ibu" : "AI"}</p>
+                  {message.content}
+                </div>
+                {bubbleRole !== "ibu" && (
+                  <button onClick={() => deleteMessage(message.id)} className="opacity-0 transition group-hover:opacity-60 hover:opacity-100" aria-label="Hapus pesan"><Trash2 className="h-4 w-4" /></button>
+                )}
+              </div>
+            );
           })}
           <div ref={bottomRef} />
         </div>
