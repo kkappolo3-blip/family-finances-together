@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { BarChart3, Check, Home, LogOut, Send, Trash2, WalletCards, X } from "lucide-react";
+import { BarChart3, Check, Eraser, Home, LogOut, Send, Trash2, WalletCards, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
