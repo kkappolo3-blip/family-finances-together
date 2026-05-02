@@ -237,6 +237,17 @@ const Index = () => {
 
   const markPaid = (entry: FinanceEntry) => supabase.from("finance_entries").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", entry.id).then(loadFamilyData);
   const removeEntry = (id: string) => supabase.from("finance_entries").update({ status: "deleted" }).eq("id", id).then(loadFamilyData);
+  const deleteMessage = async (id: string) => {
+    if (!confirm("Hapus pesan ini?")) return;
+    await supabase.from("chat_messages").delete().eq("id", id);
+    loadFamilyData();
+  };
+  const clearHistory = async () => {
+    if (!family) return;
+    if (!confirm("Bersihkan SEMUA riwayat chat? Tindakan ini tidak bisa dibatalkan.")) return;
+    await supabase.from("chat_messages").delete().eq("family_id", family.familyId);
+    loadFamilyData();
+  };
   const signOut = async () => {
     localStorage.removeItem(STORAGE_KEY);
     setFamily(null);
